@@ -119,9 +119,12 @@ int main()
                     bluetooth.putc('d');
                 }
                 svd_pck++;
-                if(svd_pck>50)
+                if(svd_pck>200)
                 {
                     state = CLOSE;
+                }else
+                {
+                    state = IDLE;
                 }
                 
                 break;
@@ -136,7 +139,7 @@ int main()
                 
             case CAN_STATE:
                 
-		state = IDLE;
+                state = IDLE;
                 canHandler();
                 
                 break;
