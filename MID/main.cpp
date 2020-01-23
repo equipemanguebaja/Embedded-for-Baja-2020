@@ -101,6 +101,7 @@ int main()
                 } 
                 state = IDLE;
                 CAN_IER |= CAN_IER_FMPIE0;                  // enable RX interrupt
+                
                 break;
                 
             case SAVE:
@@ -122,6 +123,7 @@ int main()
                 {
                     state = CLOSE;
                 }
+                
                 break;
                 
             case CLOSE:
@@ -129,16 +131,14 @@ int main()
                 CAN_IER &= ~CAN_IER_FMPIE0;                 // disable RX interrupt
                 fclose(fp);
                 state = OPEN;
+                
                 break;
                 
             case CAN_STATE:
                 
+		state = IDLE;
                 canHandler();
-                if((t.read_ms()-last_pck) > 1000)
-                {
-                    state = SAVE;
-                    last_pck = t.read_ms();
-                }
+                
                 break;
                 
             default:
@@ -170,6 +170,7 @@ void filterMessage(CANMsg msg){
   if(msg.id == RPM_ID)
   {
       msg >> data.rpm;
+      state = SAVE;
   }
   
   else if(msg.id == TEMPERATURE_ID)
