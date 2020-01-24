@@ -39,10 +39,10 @@ int err, svd_pck = 0;
 packet_t data;
 uint8_t bluet[sizeof(packet_t)];
 state_t state = OPEN;
-uint16_t last_open = 0, last_pck = 0;
 
 int main() 
 {
+    logger_on = 1;                              // Device is on, so led is on
     memset(bluet,0,sizeof(packet_t));
     int num_parts = 0,                          // Number of parts already saved
         num_files = 0,                          // Number of files in SD
@@ -54,6 +54,8 @@ int main()
  /* Wait for SD mount */
     do
     {
+        debugging = 0;                          // Debugging led is off untill SD mounted
+        
         /* Try to mount the filesystem */
         pc.printf("Mounting the filesystem... ");
         fflush(stdout);
@@ -75,6 +77,7 @@ int main()
         }
     }while(err);   
     
+    debugging = 1;                          // Debugging led is on because SD is already mounted, device ready
     t.start();
     
     while(1)   
@@ -94,13 +97,13 @@ int main()
                 sprintf(name_file, "%s%s%d", name_dir, "/data", num_parts+1);
                 fp = fopen(name_file, "a");
                 
-                if (fp == NULL)                             // if it can't open the file then print error message
+                if (fp == NULL)                             // If it can't open the file then print error message
                 {
                     led = 1;
                     pc.printf("fp = null");
                 } 
                 state = IDLE;
-                CAN_IER |= CAN_IER_FMPIE0;                  // enable RX interrupt
+                CAN_IER |= CAN_IER_FMPIE0;                  // Enable RX interrupt
                 
                 break;
                 
@@ -119,7 +122,7 @@ int main()
                     bluetooth.putc('d');
                 }
                 svd_pck++;
-                if(svd_pck>200)
+                if(svd_pck>100)
                 {
                     state = CLOSE;
                 }else
@@ -131,8 +134,9 @@ int main()
                 
             case CLOSE:
                 
-                CAN_IER &= ~CAN_IER_FMPIE0;                 // disable RX interrupt
+                CAN_IER &= ~CAN_IER_FMPIE0;                 // Disable RX interrupt
                 fclose(fp);
+                //NVIC_SystemReset();                       // Reset the system
                 state = OPEN;
                 
                 break;
@@ -155,7 +159,7 @@ void setupInterrupts(){
 }
 
 void canISR(){
-    CAN_IER &= ~CAN_IER_FMPIE0;                 // disable RX interrupt
+    CAN_IER &= ~CAN_IER_FMPIE0;                 // Disable RX interrupt
     state = CAN_STATE;
 }
 
@@ -163,7 +167,7 @@ void canHandler(){
       CANMsg rxMsg;
       can.read(rxMsg);
       filterMessage(rxMsg);
-      CAN_IER |= CAN_IER_FMPIE0;                  // enable RX interrupt
+      CAN_IER |= CAN_IER_FMPIE0;                  // Enable RX interrupt
 }
 
 
