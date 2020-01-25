@@ -8,6 +8,17 @@
 #include "definitions.h"
 #include "CANMsg.h"
 
+/* State type declaration */
+typedef enum
+{
+    IDLE,       // Do nothing
+    OPEN,       // Open archive
+    SAVE,       // Save data
+    CLOSE,      // Close archive
+    CAN_STATE   // Enter CAN handler
+} state_t;
+
+
 /* Mbed Tools */
 Timer t;
 
@@ -46,11 +57,12 @@ int main()
     memset(bluet,0,sizeof(packet_t));
     int num_parts = 0,                          // Number of parts already saved
         num_files = 0,                          // Number of files in SD
-        svd_pck = 0;                            // Number of saved packets (in current part)
+        svd_pck = 0;                            // Number of saved packets (in current data part)
     char name_dir[12];                          // Name of current folder (new LOG)
     char name_file[20];                         // Name of current file (dataX)
     static FILE *fp;
-
+    bool first_open = true;                     // Sinalizes the first open to create a new directory
+    
  /* Wait for SD mount */
     do
     {
@@ -77,7 +89,7 @@ int main()
         }
     }while(err);   
     
-    debugging = 1;                          // Debugging led is on because SD is already mounted, device ready
+    debugging = 1;      // Debugging led is on because SD is already mounted, device ready
     t.start();
     
     while(1)   
@@ -89,21 +101,26 @@ int main()
             
             case OPEN:
             
-                num_files = count_files_in_sd("/sd");
-                sprintf(name_dir, "%s%d", "/sd/LOG", num_files + 1);
-    
-                /* Create RUN directory */
-                mkdir(name_dir, 0777);
-                sprintf(name_file, "%s%s%d", name_dir, "/data", num_parts+1);
+                if(first_open)
+                {
+                    num_files = count_files_in_sd("/sd");
+                    sprintf(name_dir, "%s%d", "/sd/LOG", num_files + 1);
+                    /* Create RUN directory */
+                    mkdir(name_dir, 0777);
+                    first_open = false;
+                }
+                
+                sprintf(name_file, "%s%s%d", name_dir, "/data", num_parts++);
                 fp = fopen(name_file, "a");
                 
-                if (fp == NULL)                             // If it can't open the file then print error message
+                if (fp == NULL)             // If it can't open the file then print error message
                 {
                     led = 1;
-                    pc.printf("fp = null");
-                } 
+                    pc.printf("/r/nfp = null/r/n");
+                }
+                 
                 state = IDLE;
-                CAN_IER |= CAN_IER_FMPIE0;                  // Enable RX interrupt
+                CAN_IER |= CAN_IER_FMPIE0;  // Enable RX interrupt
                 
                 break;
                 
@@ -111,20 +128,21 @@ int main()
             
                 fwrite((void *)&data, sizeof(packet_t), 1, fp);
                 
-                if(bluetooth.readable()) 
+                if(bluetooth.readable())                                // Check if the bluetooh device is at work
                 {
-                    memcpy(&bluet, (uint8_t *)&data, sizeof(packet_t));
-                    bluetooth.putc('e');
+                    memcpy(&bluet, (uint8_t *)&data, sizeof(packet_t)); // Makes narrow conversion to send uint8_t format packet by bluetooh
+                    bluetooth.putc('e');                                // This char represents the start of a packet
                     for(int i = 0; i < sizeof(bluet); i++)
                     {
-                        bluetooth.putc(bluet[i]);
+                        bluetooth.putc(bluet[i]);                       // Send packet char by char
                     }
-                    bluetooth.putc('d');
+                    bluetooth.putc('d');                                // This char represents the end of a packet
                 }
                 svd_pck++;
-                if(svd_pck>100)
+                if(svd_pck == 100)                                         // If 100 packets were wroten, close file
                 {
                     state = CLOSE;
+                    svd_pck = 0;
                 }else
                 {
                     state = IDLE;
