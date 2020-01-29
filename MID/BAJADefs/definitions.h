@@ -46,13 +46,4 @@ typedef struct
 
 } packet_t;
 
-typedef enum
-{
-    IDLE,
-    OPEN,       // open archive
-    SAVE,       // save data
-    CLOSE,      // close archive
-    CAN_STATE         // 
-} state_t;
-
 #endif
