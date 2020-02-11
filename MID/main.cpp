@@ -23,8 +23,8 @@ typedef enum
 Timer t;
 
 /* Communication protocols */
-Serial pc(PA_2, PA_3);
-Serial bluetooth(PA_9, PA_10);
+//Serial pc(PA_2, PA_3);
+Serial bluetooth(PA_9, PA_10, 9600);
 CAN can(PB_8, PB_9, 1000000);
 
 /* Interrupt services routine */
@@ -125,7 +125,7 @@ int main()
                 if (fp == NULL)             // If it can't open the file then print error message
                 {
                     led = 1;
-                    pc.printf("/r/nfp = null/r/n");
+                    //pc.printf("/r/nfp = null/r/n");
                 }
              
                 state = IDLE;
@@ -135,18 +135,16 @@ int main()
                 break;
                 
             case SAVE:
+                debugging = !debugging;
                 fwrite((void *)&data, sizeof(packet_t), 1, fp);         // Write a packet to the file
                 
-                if(bluetooth.readable())                                // Check if the bluetooh device is at work
+                memcpy(&bluet, (uint8_t *)&data, sizeof(packet_t)); // Makes narrow conversion to send uint8_t format packet by bluetooh
+                bluetooth.putc('e');                                // This char represents the start of a packet
+                for(int i = 0; i < sizeof(bluet); i++)
                 {
-                    memcpy(&bluet, (uint8_t *)&data, sizeof(packet_t)); // Makes narrow conversion to send uint8_t format packet by bluetooh
-                    bluetooth.putc('e');                                // This char represents the start of a packet
-                    for(int i = 0; i < sizeof(bluet); i++)
-                    {
-                        bluetooth.putc(bluet[i]);                       // Send packet char by char
-                    }
-                    bluetooth.putc('d');                                // This char represents the end of a packet
+                    bluetooth.putc(bluet[i]);                       // Send packet char by char
                 }
+                //bluetooth.putc('d');                                // This char represents the end of a packet
                 
                 svd_pck++;
                 if(svd_pck == 20)                                         // If 20 packets were wroten, close file
@@ -211,7 +209,6 @@ void filterMessage(CANMsg msg)
    
   if(msg.id == RPM_ID)
   {
-      debugging = !debugging;
       msg >> data.rpm;
       state = SAVE;
   }
