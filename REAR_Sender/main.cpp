@@ -122,7 +122,7 @@ int main()
                 break;
             case FUEL_ST:
                 //serial.printf("f");
-                data.flags &= ~(0x8);                             // clear fuel flag
+                data.flags &= ~(0x08);                             // clear fuel flag
                 data.flags |= (fuel_counter > NORMAL_THRESHOLD) ? (0x01 << 3) : 0;
 
                 txMsg.clear(FLAGS_ID);
