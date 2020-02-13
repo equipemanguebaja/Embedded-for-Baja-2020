@@ -6,8 +6,8 @@
 #include "CANMsg.h"
 #include "RFM69.h"
 
-//#define MB1                   // uncomment this line if MB1
-#define MB2                 // uncomment this line if MB2
+#define MB1                   // uncomment this line if MB1
+//#define MB2                 // uncomment this line if MB2
 
 #ifdef MB1
 #define NODE_ID MB1_ID
@@ -23,12 +23,12 @@ RFM69 radio(PB_15, PB_14, PB_13, PB_12, PA_8); // RFM69::RFM69(PinName  PinName 
 /* I/O pins */
 AnalogIn analog(PA_0);
 #ifdef MB1
-DigitalIn fuel_sensor(PB_5, PullNone);                                          // MB1
+DigitalIn fuel_sensor(PB_0, PullNone);                                          // MB1
 InterruptIn freq_sensor(PB_4, PullNone);                                        // MB1
 #endif
 #ifdef MB2
-DigitalIn fuel_sensor(PB_6, PullNone);                                          // MB2
-InterruptIn freq_sensor(PB_5, PullNone);                                        // MB2
+DigitalIn fuel_sensor(PB_0, PullNone);                                          // MB2
+InterruptIn freq_sensor(PB_4, PullNone);                                        // MB2
 #endif
 PwmOut servo(PA_6);
 /* Debug pins */
@@ -79,7 +79,6 @@ uint64_t current_period = 0, last_count = 0;
 float rpm_hz, V_termistor = 0;
 uint8_t fuel_timer = 0;
 uint8_t fuel_counter = 0;
-bool box = false;
 packet_t data;                                // Create package for radio comunication
 uint8_t imu_counter;
 
@@ -123,9 +122,8 @@ int main()
                 break;
             case FUEL_ST:
                 //serial.printf("f");
-                data.flags &= ~(0x88);                             // clear fuel and box flags
+                data.flags &= ~(0x8);                             // clear fuel flag
                 data.flags |= (fuel_counter > NORMAL_THRESHOLD) ? (0x01 << 3) : 0;
-                data.flags |= box << 7;
 
                 txMsg.clear(FLAGS_ID);
                 txMsg << data.flags;
@@ -177,8 +175,6 @@ int main()
 //                    if (radio.ACKRequested())
 //                        radio.sendACK();
 //                    led = 0;
-//                    box = (bool) radio.DATA;
-////                    serial.printf("%d\r\n", (bool)radio.DATA);
 //                }
 
 //                serial.printf("%d,%d,%d\r\n", (!imu_buffer.empty()), (!d10hz_buffer.empty()), (!temp_buffer.empty()));
@@ -241,7 +237,7 @@ void ticker100HzISR()
 {
     if (fuel_timer < 100) {
         fuel_timer++;
-        fuel_counter += !fuel_sensor.read();
+        fuel_counter += fuel_sensor.read();
     } else {
         state_buffer.push(FUEL_ST);
         ticker100Hz.detach();
