@@ -139,13 +139,15 @@ int main()
                 fwrite((void *)&data, sizeof(packet_t), 1, fp);         // Write a packet to the file
                 
                 memcpy(&bluet, (uint8_t *)&data, sizeof(packet_t)); // Makes narrow conversion to send uint8_t format packet by bluetooh
-                bluetooth.putc('e');                                // This char represents the start of a packet
-                for(int i = 0; i < sizeof(bluet); i++)
-                {
-                    bluetooth.putc(bluet[i]);                       // Send packet char by char
-                }
-                //bluetooth.putc('d');                                // This char represents the end of a packet
                 
+                
+                for(int i = 0; i < sizeof(bluet); i++)
+                {   
+                    bluetooth.putc('e');                                // This char represents the start of a packet
+                    bluetooth.putc(bluet[i]);                           // Send packet char by char
+                    bluetooth.putc('d');                                // This char represents the end of a packet
+               
+                } 
                 svd_pck++;
                 if(svd_pck == 20)                                         // If 20 packets were wroten, close file
                 {
