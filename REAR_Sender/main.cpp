@@ -6,8 +6,8 @@
 #include "CANMsg.h"
 #include "RFM69.h"
 
-#define MB1                   // uncomment this line if MB1
-//#define MB2                 // uncomment this line if MB2
+//#define MB1                   // uncomment this line if MB1
+#define MB2                 // uncomment this line if MB2
 
 #ifdef MB1
 #define NODE_ID MB1_ID
@@ -114,7 +114,8 @@ int main()
                 //serial.printf("t");
                 //dbg1 = 0;
                 V_termistor = VCC*analog.read();
-                data.temperature = ((float) (1.0/0.032)*log((1842.8*(VCC - V_termistor)/(V_termistor*R_TERM))));
+                //data.temperature = ((float) (1.0/0.032)*log((1842.8*(VCC - V_termistor)/(V_termistor*R_TERM))));
+                data.temperature = ((float)115.5*(exp(-0.02187*(V_termistor*R_TERM)/(VCC - V_termistor))) + 85.97*(exp(-0.00146*(V_termistor*R_TERM)/(VCC - V_termistor))));
                 /* Send temperature data */
                 txMsg.clear(TEMPERATURE_ID);
                 txMsg << data.temperature;
