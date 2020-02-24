@@ -7,8 +7,8 @@
 #include "LSM6DS3.h"
 #include "Kalman.h"
 
-#define MB1
-//#define MB2
+//#define MB1
+#define MB2
 
 /* Communication protocols */
 CAN can(PB_8, PB_9, 1000000);
@@ -416,8 +416,8 @@ void displayData(uint16_t vel, uint16_t Hz, uint16_t temp, bool comb, int16_t gp
         if(gr>=15&&gr<30){grn=5;}
         if(gr>=30){grn=6;}
         
-        sprintf(str + strlen(str),"page1.gp.val=%d%c%c%c",grn,0xff,0xff,0xff);
-        sprintf(str + strlen(str),"page1.gp_n.val=%d%c%c%c",gr,0xff,0xff,0xff);
+        sprintf(str + strlen(str),"page1.gr.val=%d%c%c%c",grn,0xff,0xff,0xff);
+        sprintf(str + strlen(str),"page1.gr_n.val=%d%c%c%c",gr,0xff,0xff,0xff);
     }
     
     while(str[aux]!='\0')
