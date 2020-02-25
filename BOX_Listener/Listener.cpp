@@ -23,14 +23,7 @@
 #define FREQUENCY     RF69_915MHZ
  
 #define IS_RFM69HW   //NOTE: uncomment this ONLY for RFM69HW or RFM69HCW
-
-#ifdef MB1
-#define ENCRYPT_KEY    "MB1KEY59"  // use same 16byte encryption key for all devices on net
-#endif
-#ifdef MB2
-#define ENCRYPT_KEY    "MB2KEY27"  // use same 16byte encryption key for all devices on net
-#endif
-
+#define ENCRYPT_KEY    "EncryptKey123456"  // use same 16byte encryption key for all devices on net
 #define ACK_TIME       50                  // max msec for ACK wait
 #define SERIAL_BAUD    115200
 #define VERSION  "1.0"

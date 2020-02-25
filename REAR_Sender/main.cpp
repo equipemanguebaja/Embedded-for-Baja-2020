@@ -6,16 +6,14 @@
 #include "CANMsg.h"
 #include "RFM69.h"
 
-//#define MB1                   // uncomment this line if MB1
-#define MB2                 // uncomment this line if MB2
+#define MB1                   // uncomment this line if MB1
+//#define MB2                 // uncomment this line if MB2
 
 #ifdef MB1
 #define NODE_ID MB1_ID
-#define ENCRYPT_KEY    "MB1KEY59"  // use same 16byte encryption key for all devices on net
 #endif
 #ifdef MB2
 #define NODE_ID MB2_ID
-#define ENCRYPT_KEY    "MB2KEY27"  // use same 16byte encryption key for all devices on net
 #endif
 
 /* Communication protocols */
@@ -117,7 +115,7 @@ int main()
                 //dbg1 = 0;
                 V_termistor = VCC*analog.read();
                 //data.temperature = ((float) (1.0/0.032)*log((1842.8*(VCC - V_termistor)/(V_termistor*R_TERM))));
-                data.temperature = ((float)115.5*(exp(-0.02187*(V_termistor*R_TERM)/(VCC - V_termistor))) + 85.97*(exp(-0.00146*(V_termistor*R_TERM)/(VCC - V_termistor))));
+                data.temperature = ((float) 115.5*(exp(-0.02187*(V_termistor*R_TERM)/(VCC - V_termistor))) + 85.97*(exp(-0.00146*(V_termistor*R_TERM)/(VCC - V_termistor))));
                 /* Send temperature data */
                 txMsg.clear(TEMPERATURE_ID);
                 txMsg << data.temperature;
@@ -183,30 +181,26 @@ int main()
 //                serial.printf("%d,%d,%d\r\n", (!imu_buffer.empty()), (!d10hz_buffer.empty()), (!temp_buffer.empty()));
 //                if((!imu_buffer.empty()) && (!d10hz_buffer.empty()) && (!temp_buffer.empty()))
 //                {
-                #ifdef MB1
                     if (!imu_buffer.empty()) {
                         imu_buffer.pop(temp_imu);
                         memcpy(&data.imu, temp_imu, 4*sizeof(imu_t));
                         data.rpm = ((uint16_t)rpm_hz * 60)*65536.0/5000.0;
-                        radio.send((uint8_t)BOXRADIO_ID1, &data, sizeof(packet_t), true, false);     // request ACK with 1 retry (waitTime = 40ms)
+                        #ifdef MB1
+                            radio.send((uint8_t)BOXRADIO_ID1, &data, sizeof(packet_t), true, false);     // request ACK with 1 retry (waitTime = 40ms)
+                        #endif
+                        #ifdef MB2
+                            radio.send((uint8_t)BOXRADIO_ID2, &data, sizeof(packet_t), true, false);     // request ACK with 1 retry (waitTime = 40ms)
+                        #endif
                     } else if (t.read_ms() - imu_last_acq > 500) {
                         memset(&data.imu, 0, 4*sizeof(imu_t));
                         data.rpm = ((uint16_t)rpm_hz * 60)*65536.0/5000.0;
-                        radio.send((uint8_t)BOXRADIO_ID1, &data, sizeof(packet_t), true, false);     // request ACK with 1 retry (waitTime = 40ms)
+                        #ifdef MB1
+                            radio.send((uint8_t)BOXRADIO_ID1, &data, sizeof(packet_t), true, false);     // request ACK with 1 retry (waitTime = 40ms)
+                        #endif
+                        #ifdef MB2
+                            radio.send((uint8_t)BOXRADIO_ID2, &data, sizeof(packet_t), true, false);     // request ACK with 1 retry (waitTime = 40ms)
+                        #endif
                     }
-                #endif
-                #ifdef MB2
-                    if (!imu_buffer.empty()) {
-                        imu_buffer.pop(temp_imu);
-                        memcpy(&data.imu, temp_imu, 4*sizeof(imu_t));
-                        data.rpm = ((uint16_t)rpm_hz * 60)*65536.0/5000.0;
-                        radio.send((uint8_t)BOXRADIO_ID2, &data, sizeof(packet_t), true, false);     // request ACK with 1 retry (waitTime = 40ms)
-                    } else if (t.read_ms() - imu_last_acq > 500) {
-                        memset(&data.imu, 0, 4*sizeof(imu_t));
-                        data.rpm = ((uint16_t)rpm_hz * 60)*65536.0/5000.0;
-                        radio.send((uint8_t)BOXRADIO_ID2, &data, sizeof(packet_t), true, false);     // request ACK with 1 retry (waitTime = 40ms)
-                    }
-                #endif
 //                }
 //                radio.receiveDone();
                 //dbg4 = 0;
