@@ -12,7 +12,8 @@
 
 /* Radio definitions */
 #define NETWORK_ID          101
-#define BOXRADIO_ID         69
+#define BOXRADIO_ID1         69
+#define BOXRADIO_ID2         70
 #define MB1_ID              11
 #define MB2_ID              22
 #define FREQUENCY_915MHZ    91

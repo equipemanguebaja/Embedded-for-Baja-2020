@@ -5,9 +5,16 @@
 #include <RFM69.h>
 #include <SPI.h>
 #include "definitions.h"
- 
- 
+
+#define MB1
+//#define MB2 
+
+#ifdef MB1 
 #define GATEWAY_ID    69     // this is ME, TGateway
+#endif
+#ifdef MB2 
+#define GATEWAY_ID    70     // this is ME, TGateway
+#endif
 #define NETWORKID     101   //the same on all nodes that talk to each other
  
 // Uncomment only one of the following three to match radio frequency
@@ -16,7 +23,14 @@
 #define FREQUENCY     RF69_915MHZ
  
 #define IS_RFM69HW   //NOTE: uncomment this ONLY for RFM69HW or RFM69HCW
-#define ENCRYPT_KEY    "EncryptKey123456"  // use same 16byte encryption key for all devices on net
+
+#ifdef MB1
+#define ENCRYPT_KEY    "MB1KEY59"  // use same 16byte encryption key for all devices on net
+#endif
+#ifdef MB2
+#define ENCRYPT_KEY    "MB2KEY27"  // use same 16byte encryption key for all devices on net
+#endif
+
 #define ACK_TIME       50                  // max msec for ACK wait
 #define SERIAL_BAUD    115200
 #define VERSION  "1.0"
@@ -93,7 +107,7 @@ while(1) {
      gui.flags = packet.flags;
      gui.timestamp = tmr.read_ms();
      */
-     memcpy(&data, &gui, sizeof(gui_t));
+     //memcpy(&data, &gui, sizeof(gui_t));
      
      pc.putc(theNodeID);
      for(int i = 0; i < sizeof(data); i++)
