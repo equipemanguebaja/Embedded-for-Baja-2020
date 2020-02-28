@@ -23,7 +23,7 @@ typedef enum
 Timer t;
 
 /* Communication protocols */
-//Serial pc(PA_2, PA_3);
+Serial pc(PA_2, PA_3);
 Serial bluetooth(PA_9, PA_10, 9600);
 CAN can(PB_8, PB_9, 1000000);
 
@@ -140,14 +140,12 @@ int main()
                 
                 memcpy(&bluet, (uint8_t *)&data, sizeof(packet_t)); // Makes narrow conversion to send uint8_t format packet by bluetooh
                 
-                
+                bluetooth.putc('e');                                // This char represents the start of a packet   
                 for(int i = 0; i < sizeof(bluet); i++)
                 {   
-                    bluetooth.putc('e');                                // This char represents the start of a packet
                     bluetooth.putc(bluet[i]);                           // Send packet char by char
-                    bluetooth.putc('d');                                // This char represents the end of a packet
-               
                 } 
+                bluetooth.putc('d');                                // This char represents the end of a packet
                 svd_pck++;
                 if(svd_pck == 20)                                         // If 20 packets were wroten, close file
                 {
